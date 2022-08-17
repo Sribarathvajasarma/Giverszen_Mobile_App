@@ -19,10 +19,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.expo",
-      "config": {
-        "googleMapsApiKey": "AIzaSyBg9yp_6i0LuulJmzGrWFyVvUJaL7pwef4"
-      }
+      "bundleIdentifier": "com.expo"
+      
     },
     "android": {
       "adaptiveIcon": {
@@ -30,11 +28,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.expo",
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyBg9yp_6i0LuulJmzGrWFyVvUJaL7pwef4"
-        }
-      },
+      
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
