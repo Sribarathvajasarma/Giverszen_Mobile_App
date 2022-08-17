@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "RN",
+    "slug": "RN",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/GNL.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/GNL.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.expo",
+      "config": {
+        "googleMapsApiKey": "AIzaSyBg9yp_6i0LuulJmzGrWFyVvUJaL7pwef4"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Untitled.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.expo",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBg9yp_6i0LuulJmzGrWFyVvUJaL7pwef4"
+        }
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "FOREGROUND_SERVICE",
+        "INTERNET",
+        "CAMERA",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ]
+    ]
+  }
+}
