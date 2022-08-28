@@ -84,7 +84,7 @@ const showAlert = (responseData) =>{
 }
  const buttonHandle = (pinNumber)=>{
      console.log(pinNumber)
-     fetch("https://giverszen1.herokuapp.com/user/confirmPinNumber", {
+     fetch("https://giverzenbackend.herokuapp.com/api/confirmPinNumber", {
       method: "POST",
       headers: {
         Accept: "application/json",

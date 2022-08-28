@@ -68,7 +68,7 @@ const ForgotPassword = ({ navigation }) => {
   const forgotpassword = async(email) => {
     console.log(email);
     await AsyncStorage.setItem('email', email)
-    fetch("https://giverszen1.herokuapp.com/user/forgot", {
+    fetch("https://giverzenbackend.herokuapp.com/api/forgot", {
       method: "POST",
       headers: {
         Accept: "application/json",

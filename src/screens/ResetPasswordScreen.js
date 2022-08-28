@@ -139,7 +139,7 @@ const ResetPasswordScreen = ({ navigation }) => {
     if(password === data.confirm_password){
       console.log(email)
       console.log(password)
-      fetch("https://giverszen1.herokuapp.com/user/reset", {
+      fetch("https://giverzenbackend.herokuapp.com/api/reset", {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -157,7 +157,7 @@ const ResetPasswordScreen = ({ navigation }) => {
             Alert.alert('Password Suceesfully Changed' ,'Now you Can Login the Giverszen',[
               {text:'okay'}
             ])
-            navigation.navigate('SigninScreen')
+            navigation.navigate('Login')
           }else{
 
           }
