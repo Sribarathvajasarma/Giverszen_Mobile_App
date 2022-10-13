@@ -131,7 +131,7 @@ const AppStack = () => {
                     headerShown: false,
 
                 }} />
-            <Drawer.Screen component={Settings} name="Add User"
+                 <Drawer.Screen component={AddUser} name="Add non-smart phone user"
                 options={{
                     drawerIcon: ({ color }) => (
                         <Feather name="user-plus" size={22} color={color} />
