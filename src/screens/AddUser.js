@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 // import all the components we are going to use
 import { SafeAreaView, StyleSheet, View, Text, Button, TextInput, TouchableOpacity, Dimensions, ScrollView, } from 'react-native';
-import Checkbox from 'expo-checkbox';
+//import Checkbox from 'expo-checkbox';
 import DropDownPicker from 'react-native-dropdown-picker';
 
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
@@ -74,7 +74,25 @@ const AddUser = ({ navigation }) => {
                         placeholder="Select distance"
 
                     />
+                    <View style={styles.button}>
+                        <TouchableOpacity style={styles.buttonContainer} >
+                            <Text style={styles.buttonText}>Save</Text>
+                        </TouchableOpacity>
 
+                        <TouchableOpacity onPress={() => navigation.navigate('Home')}
+                            style={[styles.signIn, {
+                                borderColor: '#009387',
+                                borderWidth: 1,
+                                marginTop: 15,
+                                width: '90%'
+
+                            }]}
+                        >
+                            <Text style={[styles.textSign, {
+                                color: '#009387'
+                            }]}>Cancel</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
             </ScrollView>
