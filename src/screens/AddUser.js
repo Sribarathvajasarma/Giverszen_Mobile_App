@@ -134,5 +134,52 @@ const styles = StyleSheet.create({
         color: '#333333',
         fontSize: 15,
     },
+    Ionicons: {
+        marginTop: Platform.OS === 'ios' ? 0 : 10,
+    },
+    checkbox: {
+        margin: 8,
+    },
+    button: {
+        alignItems: 'center',
+        marginTop: 50
+    },
+    buttonContainer: {
+        marginTop: -40,
+        width: '100%',
+        height: Dimensions.get('window').height / 10,
+        backgroundColor: '#009387',
+        padding: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 10,
+        width: Dimensions.get('window').width * 0.9,
+    },
+    buttonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ffffff',
+    },
+    map: {
+        height: 400,
+
+        marginVertical: 0,
+        width: Dimensions.get('window').width * 0.92
+    },
+    signIn: {
+        width: '100%',
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10
+    },
+    textSign: {
+        fontSize: 18,
+        fontWeight: 'bold'
+    },
+    button: {
+        alignItems: 'center',
+        marginTop: 50
+    }
 
 });
