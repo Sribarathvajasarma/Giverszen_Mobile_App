@@ -62,6 +62,44 @@ const AddUser = ({ navigation }) => {
                         style={{ borderWidth: 1, borderColor: '#000000', marginHorizontal: 20, height: 60, paddingLeft: 10, borderRadius: 10 }}
 
                     />
+                     <Text style={{ margin: 20, fontSize: 15 }}>Pickup Location</Text>
+                    <View style={{ alignItems: "center", justifyContent: "center" }}>
+                    <MapView
+                            provider={PROVIDER_GOOGLE}
+                           
+                         
+                            style={styles.map}
+                            customMapStyle={mapStyle}
+                            showsUserLocation={true}
+                            followsUserLocation={true}
+                            initialRegion={{ longitude: latlng.longitude, latitude: latlng.latitude, latitudeDelta: 0.005, longitudeDelta: 0.005 }}
+
+                        >
+
+                            <MapView.Marker draggable
+                                coordinate={{ longitude: latlng.longitude ? latlng.longitude : 80.0000, latitude: latlng.latitude ? latlng.latitude : 9.0000 }}
+                                onDragEnd={(e) => setData({
+                                    ...data,
+                                    longitude: e.nativeEvent.coordinate.longitude.toFixed(4),
+                                    latitude: e.nativeEvent.coordinate.latitude.toFixed(4)
+                                })}
+                                identifier={'mk1'}
+                            />
+
+
+
+                        </MapView> 
+                        <View style={{
+
+                            position: 'absolute',//use absolute position to show button on top of the map
+                            bottom: '10%', //for center align
+                            left: '25%',
+                            width: Dimensions.get('window').width * 0.50,
+                        }}
+                        >
+                            <Button title="Locate me" />
+                        </View>
+                    </View>
                     <Text style={{ margin: 20, fontSize: 15 }}> Notify Between</Text>
 
                     <DropDownPicker style={{ borderWidth: 1, borderColor: '#000000', marginHorizontal: 20, height: 60, paddingLeft: 10, borderRadius: 10, width: 310 }}
