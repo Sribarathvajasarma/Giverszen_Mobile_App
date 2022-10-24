@@ -1,60 +1,82 @@
 import { Button, ScrollView, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React,{useState} from 'react'
 import { Container, Card, UserInfo, UserImg, UserName, Interaction, UserInfoText, PostTime, PostText, PostImg, InteractionWrapper, InteractionText, Divider } from '../styles/FeedStyle'
 import Ionicons from 'react-native-vector-icons/Ionicons'
+import { useEffect } from 'react'
+
+
+
+
 const Forum = ({ navigation }) => {
+  const [post, setPost] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  
+  useEffect(() => {
+
+    const fetch_data = async () => {
+        try {
+            setIsLoading(true)
+
+          //  let userId = await AsyncStorage.getItem('userId')
+            fetch("https://giverzenbackend.herokuapp.com/api/posts").then((response) => response.json())
+                .then((responseData) => {
+                    const postArray = []
+                    responseData.results.map((item, index) => {
+                      let posts = { username: item.username, email:item.email,avatar:item.avatar,Description:item.Description,postImage:item.postImage}
+                      postArray.push(posts)
+                      
+
+                    })
+                    setPost(postArray)
+                    setIsLoading(false)
+                    console.log(postArray)
+
+                })
+                .done();
+
+        }
+        catch (e) {
+            console.log(e);
+        }
+    }
+    fetch_data()
+
+}, [])
+
+
   return (
     <ScrollView>
 
       <Container>
-        <Card>
-          <UserInfo>
-            <UserImg source={{ uri: "https://res.cloudinary.com/dqt5uhnm0/image/upload/v1656731789/B-Social/e7pqrakivxyncp0stqzy.jpg" }} />
-            <UserInfoText>
-              <UserName>Barath</UserName>
-              <PostTime>4 hours ago</PostTime>
-            </UserInfoText>
-          </UserInfo>
-          <PostText>This is the food recovery hierarchy which shows efficient method to reduce excess food wastage. you can get more information in visiting link given below.
-          </PostText>
-          <PostText>link :-https://www.edmonton.ca/programs_services/garbage_waste/how-to-reduce-food-waste
-          </PostText>
-          <PostImg source={{ uri: "https://res.cloudinary.com/dqt5uhnm0/image/upload/v1660190049/Food-Waste-Hierarchy-Graphic-800x510_f7axv8.jpg" }} />
-          <InteractionWrapper>
-            <Interaction>
-              <Ionicons name="heart-outline" size={25} />
-              <InteractionText>Like</InteractionText>
-            </Interaction>
-            <Interaction>
-              <Ionicons name="md-chatbubble-outline" size={25} />
-              <InteractionText>Comment</InteractionText>
-            </Interaction>
+        { post.map((item)=>(
+           <Card>
+           <UserInfo>
+             <UserImg source={{ uri: item.avatar }} />
+             <UserInfoText>
+               <UserName>{item.username}</UserName>
+               <PostTime>{item.email}</PostTime>
+             </UserInfoText>
+           </UserInfo>
+           <PostText>{item.Description}
+           </PostText>
+           
+           <PostImg source={{ uri: item.postImage }} />
+           <InteractionWrapper>
+             <Interaction>
+               <Ionicons name="heart-outline" size={25} />
+               <InteractionText>Like</InteractionText>
+             </Interaction>
+             <Interaction>
+               <Ionicons name="md-chatbubble-outline" size={25} />
+               <InteractionText>Comment</InteractionText>
+             </Interaction>
+ 
+           </InteractionWrapper>
+         </Card>
 
-          </InteractionWrapper>
-        </Card>
-        <Card>
-          <UserInfo>
-            <UserImg source={{ uri: "https://res.cloudinary.com/dqt5uhnm0/image/upload/v1656731789/B-Social/e7pqrakivxyncp0stqzy.jpg" }} />
-            <UserInfoText>
-              <UserName>Barath</UserName>
-              <PostTime>4 hours ago</PostTime>
-            </UserInfoText>
-          </UserInfo>
-          <PostText>How to reduce food waste at home?</PostText>
-          <PostImg source={{ uri: "https://res.cloudinary.com/dqt5uhnm0/image/upload/v1660190428/ArticleImages_FoodWasteAtHome_sxkyj7.png" }} />
-          <Divider />
-          <InteractionWrapper>
-            <Interaction>
-              <Ionicons name="heart-outline" size={25} />
-              <InteractionText>Like</InteractionText>
-            </Interaction>
-            <Interaction>
-              <Ionicons name="md-chatbubble-outline" size={25} />
-              <InteractionText>Comment</InteractionText>
-            </Interaction>
-
-          </InteractionWrapper>
-        </Card>
+        ))}
+       
+       
 
         {/* <Button onPress={() => navigation.navigate('AddFeed')} title="press" /> */}
       </Container>
