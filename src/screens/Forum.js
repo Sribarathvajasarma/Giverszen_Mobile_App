@@ -48,8 +48,8 @@ const Forum = ({ navigation }) => {
     <ScrollView>
 
       <Container>
-        { post.map((item)=>(
-           <Card>
+        { post.map((item, index)=>(
+           <Card key={index}>
            <UserInfo>
              <UserImg source={{ uri: item.avatar }} />
              <UserInfoText>
