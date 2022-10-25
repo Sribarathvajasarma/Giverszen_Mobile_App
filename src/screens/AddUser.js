@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 // import all the components we are going to use
 import { SafeAreaView, StyleSheet, View, Text, Button, TextInput, TouchableOpacity, Dimensions, ScrollView, } from 'react-native';
-//import Checkbox from 'expo-checkbox';
+import Checkbox from 'expo-checkbox';
 import DropDownPicker from 'react-native-dropdown-picker';
 
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
@@ -23,7 +23,7 @@ const AddUser = ({ navigation }) => {
     };
 
 
-    // const map = useRef(1)
+   // const map = useRef(1)
 
 
     const [open, setOpen] = useState(false);
@@ -42,7 +42,6 @@ const AddUser = ({ navigation }) => {
         console.log(latlng)
 
     };
-
     return (
 
 
@@ -62,7 +61,7 @@ const AddUser = ({ navigation }) => {
                         style={{ borderWidth: 1, borderColor: '#000000', marginHorizontal: 20, height: 60, paddingLeft: 10, borderRadius: 10 }}
 
                     />
-                     <Text style={{ margin: 20, fontSize: 15 }}>Pickup Location</Text>
+                    <Text style={{ margin: 20, fontSize: 15 }}>Pickup Location</Text>
                     <View style={{ alignItems: "center", justifyContent: "center" }}>
                     <MapView
                             provider={PROVIDER_GOOGLE}
@@ -100,6 +99,7 @@ const AddUser = ({ navigation }) => {
                             <Button title="Locate me" />
                         </View>
                     </View>
+
                     <Text style={{ margin: 20, fontSize: 15 }}> Notify Between</Text>
 
                     <DropDownPicker style={{ borderWidth: 1, borderColor: '#000000', marginHorizontal: 20, height: 60, paddingLeft: 10, borderRadius: 10, width: 310 }}
@@ -112,6 +112,9 @@ const AddUser = ({ navigation }) => {
                         placeholder="Select distance"
 
                     />
+                    <Text style={{ margin: 20, fontSize: 15 }}>
+                        <Checkbox style={styles.checkbox} value={isChecked} onValueChange={setChecked} />  I accept to get notify when there is nearest food listings.</Text>
+
                     <View style={styles.button}>
                         <TouchableOpacity style={styles.buttonContainer} >
                             <Text style={styles.buttonText}>Save</Text>
@@ -218,6 +221,5 @@ const styles = StyleSheet.create({
     button: {
         alignItems: 'center',
         marginTop: 50
-    }
-
+    },
 });
