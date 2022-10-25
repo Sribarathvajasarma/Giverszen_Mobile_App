@@ -112,7 +112,40 @@ const AddUser = ({ navigation }) => {
         // if (username && phonenumber && longitude && latitude && listingdistance ) {
         //  console.log("Correct data")
 
+
+        fetch("https://giverzenbackend.herokuapp.com/api/nonsmartphoneuser_register", {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: data.username,
+                phonenumber: data.phonenumber,
+                longitude: data.longitude,
+                latitude: data.latitude,
+                listingdistance: value,
+            })
+        })
+
+            .then((response) => response.json())
+            .then(async (responseData) => {
+                console.log(responseData)
+                  Alert.alert('User added succesfully')
+                // if (responseData.code === 1) {
+
+                  
+
+                // } else {
+                //     Alert.alert('Sorry unable to add user, Please try again')
+
+                // }
+
+            })
+            .done();
+        //  return { listings: [...state.listings], isLoading: false }
     }
+
 
     /*
         if (username && phonenumber && longitude && latitude && listingdistance ) {
