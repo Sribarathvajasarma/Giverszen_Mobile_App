@@ -1,80 +1,53 @@
 import React, { useState, useRef, useEffect } from 'react';
-
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { SafeAreaView, StyleSheet, View, Text, Button, TextInput, TouchableOpacity, Dimensions, ScrollView, Image } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, Button, TextInput, TouchableOpacity, Dimensions, ScrollView, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-
 const Report = ({ navigation }) => {
-    const [visible, setVisible] = useState(false);
+    const [visible, setVisible] = useState(false);                       //Create states to store values
     const [isChecked, setChecked] = useState(false);
-    //const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
-    const [username, setUsername] = useState('');
+    const [username, setUsername] = useState('');                       //To Get username by async storage first set the state
     const toggleBottomNavigationView = () => {
         //Toggling the visibility state of the bottom sheet
         setVisible(!visible);
-
-
     };
-
     const map = useRef(1)
-    const [data, setData] = useState({
+    const [data, setData] = useState({                                 //Create data object state to store values given by user
         username: '',
         complaint: '',
         reportedto: '',
+    })
 
-    }
-
-    )
-
-
-
-    const handleNameChange = (val) => {
+    const handleNameChange = (val) => {                                 //Function to handle value changes in name field 
         setData({
             ...data,
             reportedto: val,
 
         })
-
     }
+
     const handleComplaintChange = (val) => {
         setData({
             ...data,
             complaint: val,
-
         })
-
     }
 
     useEffect(() => {
         const fetch_data = async () => {
-            let userName = await AsyncStorage.getItem('userName')
-            setUsername(userName)
+            let userName = await AsyncStorage.getItem('userName')                //Get current user's username from async storage
+            setUsername(userName)                                               //Set that value in username state
         }
         fetch_data()
     }, [])
 
-    useEffect(() => {
-        console.log(username)
-    }, [username])
-
-   
-
     const handlesubmit3 = () => {
-        console.log(data.username)
-        console.log(data.reportedto)
-        console.log(data.complaint)
         var date = new Date().getDate()
         var month = new Date().getMonth()
         var year = new Date().getFullYear()
-        var posted_date = date + '/' + month + '/' + year
+        var posted_date = date + '/' + month + '/' + year                          //Get current date and format
 
-
-
-
-        fetch("https://giverzenbackend.herokuapp.com/api/complaints2", {
+        fetch("https://giverzenbackend.herokuapp.com/api/complaints2", {             //Post reporting details to rest api
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -85,79 +58,41 @@ const Report = ({ navigation }) => {
                 reportedto: data.reportedto,
                 complaint: data.complaint,
                 date: posted_date
-
             })
-        })
-
-            .then((response) => response.json())
+        }).then((response) => response.json())
             .then(async (responseData) => {
-                console.log(responseData)
-                if (responseData.code === 1) {
-
-                    Alert.alert('Complaint added successfully')
-
+                if (responseData) {
+                    Alert.alert('Complaint added successfully')                     //Show successfull message
                 }
-                
-
-            })
-            .done();
+            }).done();
     }
 
     return (
-
-
         <SafeAreaView style={styles.container}>
             <ScrollView style={{ marginBottom: 20 }}>
                 <View style={styles.container}>
-
-                    {/* <Image source={require('../../assets/REP.png')}/> */}
-
                     <Text style={{ margin: 20, fontSize: 15 }}>Report User</Text>
                     <TextInput placeholder='Enter the user name that you want to report'
                         style={{ borderWidth: 1, borderColor: '#000000', marginHorizontal: 20, height: 60, paddingLeft: 10, borderRadius: 10 }}
-                        onChangeText={(val) => handleNameChange(val)}
-                    />
-
+                        onChangeText={(val) => handleNameChange(val)} />
                     <Text style={{ margin: 20, fontSize: 15 }}> Complaint</Text>
                     <TextInput placeholder='Enter the complaint'
                         style={{ borderWidth: 1, borderColor: '#000000', marginHorizontal: 20, height: 60, paddingLeft: 10, borderRadius: 10 }}
-                        onChangeText={(val) => handleComplaintChange(val)}
-                    />
-
-                   
-
-
-
-
-
+                        onChangeText={(val) => handleComplaintChange(val)} />
                     <View style={styles.button}>
                         <TouchableOpacity style={styles.buttonContainer} onPress={handlesubmit3}>
                             <Text style={styles.buttonText}>Add Complaint</Text>
                         </TouchableOpacity>
-
                         <TouchableOpacity onPress={() => navigation.navigate('Home')}
-                            style={[styles.signIn, {
-                                borderColor: '#009387',
-                                borderWidth: 1,
-                                marginTop: 15,
-                                width: '90%'
-
-                            }]}
-                        >
-                            <Text style={[styles.textSign, {
-                                color: '#009387'
-                            }]}>Cancel</Text>
+                            style={[styles.signIn, { borderColor: '#009387', borderWidth: 1, marginTop: 15, width: '90%' }]}>
+                            <Text style={[styles.textSign, { color: '#009387' }]}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
-             
-
             </ScrollView>
         </SafeAreaView>
 
-    )
-        ;
-
+    );
 };
 
 export default Report;
@@ -219,7 +154,6 @@ const styles = StyleSheet.create({
     },
     map: {
         height: 400,
-
         marginVertical: 0,
         width: Dimensions.get('window').width * 0.92
     },
