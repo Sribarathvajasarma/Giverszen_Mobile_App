@@ -12,7 +12,160 @@ import {
 } from 'react-native';
 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Feather from 'react-native-vector-icons/Feather';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
+import Animated from 'react-native-reanimated';
+import BottomSheet from 'reanimated-bottom-sheet';
+import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+const EditProfileScreen = ({ navigation }) => {
+    const [user, setUser] = useState({})
+    const [isLoading, setIsLoading] = useState(true)
+    const [data, setData] = useState({
+        id: '',
+        username: '',
+        email: '',
+        about: '',
+        image: '',
+        phone: '',
+
+
+
+    })
+
+    useEffect(() => {
+        const fetch_data = async () => {
+            let userAvatar = await AsyncStorage.getItem('userAvatar')
+            let userEmail = await AsyncStorage.getItem('userEmail')
+            let userId = await AsyncStorage.getItem('userId')
+            let userName = await AsyncStorage.getItem('userName')
+            setData({ id: userId, username: userName, email: userEmail, image: userAvatar })
+            setIsLoading(false)
+        }
+        fetch_data()
+
+
+    }, [])
+
+    const handleUserNameChange = (val) => {
+        setData({
+            ...data,
+            username: val
+        })
+    }
+
+    const handleEmailChange = (val) => {
+        setData({
+            ...data,
+            email: val
+        })
+    }
+
+
+
+    const handleAboutChange = (val) => {
+        setData({
+            ...data,
+            about: val
+        })
+    }
+
+    const handlePhoneChange = (Val) => {
+        setData({
+            ...data,
+            phone: val
+        })
+    }
+
+    const handleImageChange = (val) => {
+        setData({
+            ...data,
+            image: val
+        })
+    }
+
+    const handleSubmit = (val) => {
+        console.log(data)
+    }
+
+    const pickImage = async () => {
+        // No permissions request is necessary for launching the image library
+        //https://dev.to/joypalumbo/uploading-images-to-cloudinary-in-react-native-using-cloudinary-s-api-37mo
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+            base64: true
+        });
+
+        if (!result.cancelled) {
+            setImage(result.uri);
+            let base64Img = `data:image/jpg;base64,${result.base64}`;
+
+            let data = {
+                "file": base64Img,
+                "upload_preset": "blko7fqh",
+            }
+
+            fetch('https://api.cloudinary.com/v1_1/dqt5uhnm0/upload', {
+                body: JSON.stringify(data),
+                headers: {
+                    'content-type': 'application/json'
+                },
+                method: 'POST',
+            }).then(async r => {
+                let data = await r.json()
+                handleImageChange(data.url)
+
+            }).catch(err => console.log(err))
+        };
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    let fall = new Animated.Value(1);
+
+    if (isLoading) {
+        return <ActivityIndicator />
+    }
+
+    else {
+        return (
+            <View style={styles.container}>
+
+                <Animated.View
+                    style={{
+                        margin: 20,
+                        opacity: Animated.add(0.1, Animated.multiply(fall, 1.0)),
+                    }}>
+                    <View style={{ alignItems: 'center' }}>
+                        <TouchableOpacity onPress={pickImage}>
+                            <View
+                                style={{
+                                    height: 100,
+                                    width: 100,
+                                    borderRadius: 15,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}>
+                                <ImageBackground
+                                    source={{
                                         uri: data.image
                                     }}
                                     style={{ height: 100, width: 100 }}
@@ -63,7 +216,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
                     <View style={styles.action}>
                         <Ionicons name="ios-clipboard" color="#333333" size={20} />
                         <TextInput
-                            //multiline
+                            multiline
                             numberOfLines={3}
                             placeholder="About Me"
                             placeholderTextColor="#666666"
