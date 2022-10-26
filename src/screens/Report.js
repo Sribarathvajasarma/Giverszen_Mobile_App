@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-// import all the components we are going to use
-import { SafeAreaView, StyleSheet, View, Text, Button, TextInput, TouchableOpacity, Dimensions, ScrollView,Image } from 'react-native';
-//import Checkbox from 'expo-checkbox';
-//import DropDownPicker from 'react-native-dropdown-picker';
-
-
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { SafeAreaView, StyleSheet, View, Text, Button, TextInput, TouchableOpacity, Dimensions, ScrollView, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
@@ -14,7 +11,7 @@ const Report = ({ navigation }) => {
     const [isChecked, setChecked] = useState(false);
     //const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
-
+    const [username, setUsername] = useState('');
     const toggleBottomNavigationView = () => {
         //Toggling the visibility state of the bottom sheet
         setVisible(!visible);
@@ -22,8 +19,90 @@ const Report = ({ navigation }) => {
 
     };
 
+    const map = useRef(1)
+    const [data, setData] = useState({
+        username: '',
+        complaint: '',
+        reportedto: '',
 
-    
+    }
+
+    )
+
+
+
+    const handleNameChange = (val) => {
+        setData({
+            ...data,
+            reportedto: val,
+
+        })
+
+    }
+    const handleComplaintChange = (val) => {
+        setData({
+            ...data,
+            complaint: val,
+
+        })
+
+    }
+
+    useEffect(() => {
+        const fetch_data = async () => {
+            let userName = await AsyncStorage.getItem('userName')
+            setUsername(userName)
+        }
+        fetch_data()
+    }, [])
+
+    useEffect(() => {
+        console.log(username)
+    }, [username])
+
+   
+
+    const handlesubmit3 = () => {
+        console.log(data.username)
+        console.log(data.reportedto)
+        console.log(data.complaint)
+        var date = new Date().getDate()
+        var month = new Date().getMonth()
+        var year = new Date().getFullYear()
+        var posted_date = date + '/' + month + '/' + year
+
+
+
+
+        fetch("https://giverzenbackend.herokuapp.com/api/complaints2", {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                reportedto: data.reportedto,
+                complaint: data.complaint,
+                date: posted_date
+
+            })
+        })
+
+            .then((response) => response.json())
+            .then(async (responseData) => {
+                console.log(responseData)
+                if (responseData.code === 1) {
+
+                    Alert.alert('Complaint added successfully')
+
+                }
+                
+
+            })
+            .done();
+    }
+
     return (
 
 
@@ -31,31 +110,29 @@ const Report = ({ navigation }) => {
             <ScrollView style={{ marginBottom: 20 }}>
                 <View style={styles.container}>
 
-                {/* <Image source={require('../../assets/REP.png')}/> */}
-    
-                    <Text style={{ margin: 20, fontSize: 15 }}>User Name</Text>
+                    {/* <Image source={require('../../assets/REP.png')}/> */}
+
+                    <Text style={{ margin: 20, fontSize: 15 }}>Report User</Text>
                     <TextInput placeholder='Enter the user name that you want to report'
                         style={{ borderWidth: 1, borderColor: '#000000', marginHorizontal: 20, height: 60, paddingLeft: 10, borderRadius: 10 }}
-
+                        onChangeText={(val) => handleNameChange(val)}
                     />
 
                     <Text style={{ margin: 20, fontSize: 15 }}> Complaint</Text>
                     <TextInput placeholder='Enter the complaint'
                         style={{ borderWidth: 1, borderColor: '#000000', marginHorizontal: 20, height: 60, paddingLeft: 10, borderRadius: 10 }}
-
+                        onChangeText={(val) => handleComplaintChange(val)}
                     />
-                 
 
                    
 
-                  
-                    <Text style={{ margin: 20, fontSize: 15 }}>
-                        {/* <Checkbox style={styles.checkbox} value={isChecked} onValueChange={setChecked} />  */}
-                         I accept that the complaint placed here is true</Text>
+
+
+
 
                     <View style={styles.button}>
-                        <TouchableOpacity style={styles.buttonContainer} >
-                            <Text style={styles.buttonText}>Save</Text>
+                        <TouchableOpacity style={styles.buttonContainer} onPress={handlesubmit3}>
+                            <Text style={styles.buttonText}>Add Complaint</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => navigation.navigate('Home')}
@@ -73,6 +150,7 @@ const Report = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                 </View>
+             
 
             </ScrollView>
         </SafeAreaView>
