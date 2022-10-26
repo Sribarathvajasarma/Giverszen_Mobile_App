@@ -145,6 +145,7 @@ const AppStack = () => {
                         backgroundColor: '#009387'
                     },
                 }} />
+               
             <Drawer.Screen component={Goals} name="About us"
                 options={{
                     drawerIcon: ({ color }) => (
