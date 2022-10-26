@@ -216,7 +216,7 @@ const EditProfileScreen = ({ navigation }) => {
                     <View style={styles.action}>
                         <Ionicons name="ios-clipboard" color="#333333" size={20} />
                         <TextInput
-                            multiline
+                            //multiline
                             numberOfLines={3}
                             placeholder="About Me"
                             placeholderTextColor="#666666"
