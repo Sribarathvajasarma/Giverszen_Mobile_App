@@ -1,138 +1,163 @@
-import { Platform, StyleSheet, Text, Image, View, Dimensions, StatusBar, ScrollView, TouchableWithoutFeedback } from 'react-native'
+import { Platform, StyleSheet, Text, Image, Alert, View, Dimensions, StatusBar, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 const MIN_HEIGHT = Platform.OS === 'ios' ? 90 : 55;
 const MAX_HEIGHT = 350;
 
 const ViewListings = ({ route }) => {
-    const itemData = route.params.itemData
-    const [user, setUser] = useState(0)
+    const itemData = route.params.itemData                                  //Get itemData from previous screen
+    const [user, setUser] = useState(0)                                     //Create states to store values
+    const [loading, setLoading] = useState(false)
+    const [text, setText] = useState("Request this listing")
+    const [text2, setText2] = useState("Request")
+    const [text3, setText3] = useState('thumbs-up')
     useEffect(() => {
-        console.log(itemData)
+        setLoading(true)
         const fetch_data = async () => {
-
             let userId = await AsyncStorage.getItem('userId')
             setUser(parseInt(userId))
+            fetch("https://giverzenbackend.herokuapp.com/api/check_request", {           //Check the current user already request this listing using api
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    requester_id: parseInt(userId),
+                    listings_id: itemData.id
+                })
+            }).then((response) => response.json())
+                .then(async (responseData) => {
+                    if (responseData.code === 1) {                                 //Do actions according to the response values from server
+                        setText('You have already requested this listing')
+                        setText2("Cancel request")
+                        setText3("thumbs-down")
+
+                    }
+                }).done();
+            setLoading(false)
         }
         fetch_data()
-
-
     }, [])
-    return (
-        <View style={styles.container}>
-            <ScrollView>
-                <StatusBar barStyle='light-content' />
-                <Image source={{ uri: itemData.image }} style={styles.image} />
-                <View style={styles.section}>
 
-                    <Text style={styles.title}>{itemData.name}</Text>
+    const RequestHandler = () => {
+        setLoading(true)
+        if (text2 === "Request") {
+            fetch("https://giverzenbackend.herokuapp.com/api/add_request", {          //Post request details to api
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    requester_id: parseInt(user),
+                    listings_id: itemData.id
+                })
+            }).then((response) => response.json())
+                .then(async (responseData) => {
+                    if (responseData.msg === "Listing requested successfully") {
+                        setText('You have already requested this listing')
+                        setText2("Cancel request")
+                        setText3("thumbs-down")
+                        Alert.alert('Listing requested succesfully')
+                    } else {
+                        Alert.alert(responseData.msg)
+                    }
+                }).done();
+        } else {
+            fetch("https://giverzenbackend.herokuapp.com/api/delete_request", {        //Delete the existing request of this current user for this particular listing from api
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    requester_id: parseInt(user),
+                    listings_id: itemData.id
+                })
+            }).then((response) => response.json())
+                .then(async (responseData) => {
+                    if (responseData.msg === "Request removed") {
+                        setText('You have already requested this listing')
+                        setText2("Request")
+                        setText3("thumbs-up")
+                        Alert.alert('Listing request removed succesfully')               //Show successfull message
+                    } else {
+                        Alert.alert(responseData.msg)                                  //Show error message
+                    }
+                }).done();
+        }
+        setLoading(false)
+    }
+    if (loading === true) {
+        return (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                <ActivityIndicator size="large" />
+            </View>
+        )
+    } else {
+        return (
+            <View style={styles.container}>
+                <ScrollView>
+                    <StatusBar barStyle='light-content' />
+                    <Image source={{ uri: itemData.image }} style={styles.image} />
+                    <View style={styles.section}>
+                        <Text style={styles.title}>{itemData.name}</Text>
+                    </View>
+                    <View style={[styles.section, { height: 100 }]}>
+                        <Text style={styles.title}>Best Before</Text>
+                        <Text style={[styles.sectionContent, { color: '#009387' }]}>22 Aug 2022 10.00.00</Text>
+                    </View>
+                    <View style={[styles.section, { height: 100 }]}>
+                        <Text style={styles.title}>Poster Name</Text>
+                        <Text style={styles.sectionContent}>Vithiyasahar</Text>
+                    </View>
+                    <View style={[styles.section, { height: 150 }]}>
+                        <Text style={styles.title}>description</Text>
+                        <Text style={styles.sectionContent}>{itemData.description}</Text>
+                    </View>
+                    <View style={[styles.section, { height: 250 }]}>
+                        <Text style={[styles.title, { marginBottom: 5 }]}>Pickup point</Text>
+                        <MapView
+                            provider={PROVIDER_GOOGLE}
+                            style={{ flex: 1 }}
+                            region={{
+                                latitude: itemData.coordinate.latitude,
+                                longitude: itemData.coordinate.longitude,
+                                latitudeDelta: 0.008,
+                                longitudeDelta: 0.008
 
-                </View>
-                <View style={[styles.section, { height: 100 }]}>
-                    <Text style={styles.title}>Best Before</Text>
-                    <Text style={[styles.sectionContent, { color: '#009387' }]}>22 Aug 2022 10.00.00</Text>
-                </View>
-                <View style={[styles.section, { height: 100 }]}>
-                    <Text style={styles.title}>Poster Name</Text>
-                    <Text style={styles.sectionContent}>Vithiyasahar</Text>
-                </View>
-                <View style={[styles.section, { height: 150 }]}>
-                    <Text style={styles.title}>description</Text>
-                    <Text style={styles.sectionContent}>{itemData.description}</Text>
-                </View>
-                <View style={[styles.section, { height: 250 }]}>
-                    <Text style={[styles.title, { marginBottom: 5 }]}>Pickup point</Text>
-
-                    <MapView
-                        provider={PROVIDER_GOOGLE}
-                        style={{ flex: 1 }}
-                        region={{
-                            latitude: itemData.coordinate.latitude,
-                            longitude: itemData.coordinate.longitude,
-                            latitudeDelta: 0.008,
-                            longitudeDelta: 0.008
-
-                        }}
-                    >
-                        <MapView.Marker
-                            coordinate={itemData.coordinate}
-                            image={require('../../assets/imageedit_4_8648725550.png')}
-                        />
-                    </MapView>
-
-                </View>
-                {(itemData.poster_id === user) && <View style={styles.section}>
-                    <Text style={styles.title}>Requesters</Text>
-
-                    <TouchableWithoutFeedback
-                        onPress={() => { }}>
-                        <View style={styles.mainCardView}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={styles.subCardView}>
-                                    <Image
-                                        source={{ uri: "https://res.cloudinary.com/dqt5uhnm0/image/upload/v1656731789/B-Social/e7pqrakivxyncp0stqzy.jpg" }}
-                                        resizeMode="contain"
-                                        style={{
-                                            borderRadius: 25,
-                                            height: 50,
-                                            width: 50,
-                                        }}
-                                    />
-                                </View>
-                                <View style={{ marginLeft: 12 }}>
-                                    <Text
-                                        style={{
-                                            fontSize: 14,
-                                            color: "#050405",
-                                            fontWeight: 'bold',
-                                            textTransform: 'capitalize',
-                                        }}>
-                                        {'itechinsiders'}
-                                    </Text>
-                                    <View
-                                        style={{
-                                            marginTop: 4,
-                                            borderWidth: 0,
-                                            width: '85%',
-                                        }}>
-                                        <Text
-                                            style={{
-                                                color: "#9B969B",
-                                                fontSize: 12,
-                                            }}>
-                                            {'itechinsiders'}
-                                        </Text>
+                            }}>
+                            <MapView.Marker
+                                coordinate={itemData.coordinate}
+                                image={require('../../assets/imageedit_4_8648725550.png')}
+                            />
+                        </MapView>
+                    </View>
+                    {(itemData.requester === 0) &&
+                        <View style={styles.section}>
+                            <Text style={styles.title}>Action</Text>
+                            <Text style={styles.sectionContent}>{text}</Text>
+                            <View style={styles.categories}>
+                                <TouchableOpacity onPress={RequestHandler}>
+                                    <View style={styles.categoryContainer}>
+                                        <Entypo name={text3} size={16} style={{ marginTop: 4 }} color="#fff" />
+                                        <Text style={styles.category}>{text2}</Text>
                                     </View>
-                                </View>
+                                </TouchableOpacity>
                             </View>
-                            <View
-                                style={{
-                                    height: 25,
-                                    backgroundColor: "#F808FC",
-                                    borderWidth: 0,
-                                    width: 25,
-                                    marginLeft: -26,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    borderRadius: 50,
-                                }}>
-                                <Text style={{ color: "#fff" }}>
-                                    5
-                                </Text>
-                            </View>
-                        </View>
-                    </TouchableWithoutFeedback>
-
-
-
-                </View>}
-
-
-            </ScrollView>
-        </View>
-    )
+                        </View>}
+                    {(itemData.requester !== 0) &&
+                        <View style={styles.section}>
+                            <Text style={[styles.title, { color: '#009387' }]}>This Listing has already been requested by someone and Accepted by owner</Text>
+                        </View>}
+                </ScrollView>
+            </View>
+        )
+    }
 }
 
 export default ViewListings
@@ -175,7 +200,7 @@ const styles = StyleSheet.create({
     },
     categoryContainer: {
         flexDirection: 'row',
-        backgroundColor: '#FF6347',
+        backgroundColor: '#009387',
         borderRadius: 20,
         margin: 10,
         padding: 10,

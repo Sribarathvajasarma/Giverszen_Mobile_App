@@ -1,24 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import {
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-    ScrollView,
-    Animated,
-    Image,
-    TouchableOpacity,
-    Dimensions,
-    Platform,
-    ActivityIndicator,
-} from "react-native";
+import React, { useEffect, useState, useContext } from 'react';
+import { StyleSheet, Text, TextInput, View, ScrollView, Animated, Image, TouchableOpacity, Dimensions, Platform, ActivityIndicator, } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Fontisto from 'react-native-vector-icons/Fontisto';
-
 import { markers } from '../global/data';
+import { ListingsContext } from '../contexts/ListingsContext';
 
 const { width, height } = Dimensions.get("window");
 const CARD_HEIGHT = 220;
@@ -28,36 +13,14 @@ const SPACING_FOR_CARD_INSET = width * 0.1 - 10;
 const Mapn = () => {
     const [data, setData] = useState({})
     const [isLoading, setIsLoading] = useState(true)
-
-    const initialMapState = {
-        markers,
-        categories: [
-            {
-                name: 'Food',
-                icon: <MaterialCommunityIcons style={styles.chipsIcon} name="food-fork-drink" size={18} />,
-            },
-            {
-                name: 'Non-Food',
-                icon: <Ionicons name="ios-restaurant" style={styles.chipsIcon} size={18} />,
-            },
-            {
-                name: 'Requests',
-                icon: <Ionicons name="md-restaurant" style={styles.chipsIcon} size={18} />,
-            },
-
-        ],
-
-    };
-
+    const { dispatch, foodstate } = useContext(ListingsContext)
+    const initialMapState = { listings: foodstate.listings };
     const [state, setState] = React.useState(initialMapState);
-
-
-
     let mapIndex = 0;
     let mapAnimation = new Animated.Value(0);
 
     useEffect(() => {
-        const find_region = () => {
+        const find_region = () => {                                  //Function to find appropriate initial region for the given points
             const regionContainingPoints = points => {
                 let minLat, maxLat, minLng, maxLng;
 
@@ -85,41 +48,36 @@ const Mapn = () => {
 
                 return {
                     latitude: midLat, longitude: midLng,
-                    latitudeDelta: deltaLat + 0.01, longitudeDelta: deltaLng + 0.01,
+                    latitudeDelta: deltaLat, longitudeDelta: deltaLng,
                 };
             }
 
-            let result = markers.map(a => a.coordinate);
+            let result = state.listings.map(a => a.coordinate);
             const data = regionContainingPoints([
                 ...result
             ]);
-            setState({ markers: initialMapState.markers, categories: initialMapState.categories, region: data })
+            setState({ listings: initialMapState.listings, region: data })
         }
         setIsLoading(true)
-
         find_region()
         setIsLoading(false)
-
-    }, [markers])
+    }, [state.listings])
 
 
     useEffect(() => {
-
         mapAnimation.addListener(({ value }) => {
             let index = Math.floor(value / CARD_WIDTH + 0.3); // animate 30% away from landing on the next item
-            if (index >= state.markers.length) {
-                index = state.markers.length - 1;
+            if (index >= state.drivers.length) {
+                index = state.drivers.length - 1;
             }
             if (index <= 0) {
                 index = 0;
             }
-
             clearTimeout(regionTimeout);
-
             const regionTimeout = setTimeout(() => {
                 if (mapIndex !== index) {
                     mapIndex = index;
-                    const { coordinate } = state.markers[index];
+                    const { coordinate } = state.listings[index];
                     _map.current.animateToRegion(
                         {
                             ...coordinate,
@@ -131,32 +89,28 @@ const Mapn = () => {
                 }
             }, 10);
         });
-    });
+    }, [state.listings]);
 
-    const interpolations = state.markers.map((marker, index) => {
+    const interpolations = state.listings.map((marker, index) => {
         const inputRange = [
             (index - 1) * CARD_WIDTH,
             index * CARD_WIDTH,
             ((index + 1) * CARD_WIDTH),
         ];
-
         const scale = mapAnimation.interpolate({
             inputRange,
             outputRange: [1, 1.5, 1],
             extrapolate: "clamp"
         });
-
         return { scale };
     });
 
     const onMarkerPress = (mapEventData) => {
         const markerID = mapEventData._targetInst.return.key;
-
         let x = (markerID * CARD_WIDTH) + (markerID * 20);
         if (Platform.OS === 'ios') {
             x = x - SPACING_FOR_CARD_INSET;
         }
-
         _scrollView.current.scrollTo({ x: x, y: 0, animated: true });
     }
 
@@ -166,16 +120,15 @@ const Mapn = () => {
     if (isLoading) {
         return <ActivityIndicator style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} />
     }
-    else if (state.markers) {
+    else if (state.listings) {
         return (
             <View style={styles.container}>
                 <MapView
                     ref={_map}
                     initialRegion={state.region}
                     style={styles.container}
-                    provider={PROVIDER_GOOGLE}
-                >
-                    {state.markers.map((marker, index) => {
+                    provider={PROVIDER_GOOGLE}>
+                    {state.listings.map((marker, index) => {
                         const scaleStyle = {
                             transform: [
                                 {
@@ -189,8 +142,7 @@ const Mapn = () => {
                                     <Animated.Image
                                         source={require('../../assets/imageedit_4_8648725550.png')}
                                         style={[styles.marker, scaleStyle]}
-                                        resizeMode="cover"
-                                    />
+                                        resizeMode="cover" />
                                 </Animated.View>
                             </MapView.Marker>
                         );
@@ -201,8 +153,7 @@ const Mapn = () => {
                         placeholder="Search here"
                         placeholderTextColor="#000"
                         autoCapitalize="none"
-                        style={{ flex: 1, padding: 0 }}
-                    />
+                        style={{ flex: 1, padding: 0 }} />
                     <Ionicons name="ios-search" size={20} />
                 </View>
                 <ScrollView
@@ -219,14 +170,7 @@ const Mapn = () => {
                     }}
                     contentContainerStyle={{
                         paddingRight: Platform.OS === 'android' ? 20 : 0
-                    }}
-                >
-                    {state.categories.map((category, index) => (
-                        <TouchableOpacity key={index} style={styles.chipsItem}>
-                            {category.icon}
-                            <Text>{category.name}</Text>
-                        </TouchableOpacity>
-                    ))}
+                    }}>
                 </ScrollView>
                 <Animated.ScrollView
                     ref={_scrollView}
@@ -259,27 +203,19 @@ const Mapn = () => {
                         { useNativeDriver: true }
                     )}
                 >
-                    {state.markers.map((marker, index) => (
+                    {state.listings.map((marker, index) => (
                         <View style={styles.card} key={index}>
                             <Image
-                                source={marker.image}
+                                source={{ uri: marker.image }}
                                 style={styles.cardImage}
                                 resizeMode="cover"
                             />
                             <View style={styles.textContent}>
-                                <Text numberOfLines={1} style={styles.cardtitle}>{marker.title}</Text>
+                                <Text numberOfLines={1} style={styles.cardtitle}>{marker.name}</Text>
                                 <Text numberOfLines={1} style={styles.cardDescription}>{marker.description}</Text>
                                 <View style={styles.button}>
-                                    <TouchableOpacity
-                                        onPress={() => { }}
-                                        style={[styles.signIn, {
-                                            borderColor: '009387',
-                                            borderWidth: 1
-                                        }]}
-                                    >
-                                        <Text style={[styles.textSign, {
-                                            color: '#009387'
-                                        }]}>Request Now</Text>
+                                    <TouchableOpacity onPress={() => { }} style={[styles.signIn, { borderColor: '009387', borderWidth: 1 }]}>
+                                        <Text style={[styles.textSign, { color: '#009387' }]}>Request Now</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -292,6 +228,8 @@ const Mapn = () => {
 };
 
 export default Mapn;
+
+
 
 const styles = StyleSheet.create({
     container: {
@@ -388,7 +326,6 @@ const styles = StyleSheet.create({
         width: 30,
         height: 30,
         //tintColor: '#009387'
-
     },
     button: {
         alignItems: 'center',
