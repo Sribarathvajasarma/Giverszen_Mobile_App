@@ -2,18 +2,14 @@ import React from "react";
 import {
   View,
   Text,
-  Button,
   TouchableOpacity,
-  Dimensions,
   Platform,
   StyleSheet,
   TextInput,
   StatusBar,
-  Alert
+  Alert,
 } from "react-native";
-
 import { LinearGradient } from "expo-linear-gradient";
-//import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import * as Animatable from "react-native-animatable";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import Feather from "react-native-vector-icons/Feather";
@@ -25,10 +21,10 @@ const ForgotPassword = ({ navigation }) => {
     check_textInputChange: false,
     secureTextEntry: true,
     isValidEmail: true,
-  //  isValidPassword: true,
-  });
+  }); //Create object state to store values given by user
 
   const textInputChange = (val) => {
+    //Function to handle input changes
     if (val.trim().length > 3 || val.trim().length == 0) {
       setData({
         ...data,
@@ -47,12 +43,15 @@ const ForgotPassword = ({ navigation }) => {
   };
 
   const updateSecureTextEntry = () => {
+    //Function to secure the password
     setData({
       ...data,
       secureTextEntry: !data.secureTextEntry,
     });
   };
+
   const handleValidEmail = (val) => {
+    //function to validate email
     if (val.trim().length > 4 || val.trim().length == 4) {
       setData({
         ...data,
@@ -65,42 +64,34 @@ const ForgotPassword = ({ navigation }) => {
       });
     }
   };
-  const forgotpassword = async(email) => {
-    console.log(email);
-    await AsyncStorage.setItem('email', email)
+
+  const forgotpassword = async (email) => {
+    await AsyncStorage.setItem("email", email);
     fetch("https://giverzenbackend.herokuapp.com/api/forgot", {
+      //post email into api
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: email
-       
+        email: email,
       }),
     })
       .then((response) => response.json())
       .then((responseData) => {
-        if(responseData.code === 0){
-          Alert.alert('The email doesnot exist','you try correct email',[
-            {text:'okay'}
-          ])
-         // navigation.navigate('ForgotPassword')
+        if (responseData.code === 0) {
+          Alert.alert("The email doesnot exist", "you try correct email", [
+            { text: "okay" },
+          ]); //Show error message
+        } else {
+          Alert.alert("Send the Pin Number", "please check your email.", [
+            { text: "okay" },
+          ]);
+          navigation.navigate("PinNumber"); //navigate to pinNumber screen
         }
-        else{
-          Alert.alert('Send the Pin Number' ,'please check your email.',[
-            {text:'okay'}
-          ])
-          navigation.navigate('PinNumber')
-        }
-       console.log(responseData);
-      // navigation.navigate('PinNumber')
-      //  console.log(responseData.msg)
       })
       .done();
-
-      
-    
   };
 
   return (
@@ -108,13 +99,11 @@ const ForgotPassword = ({ navigation }) => {
       <StatusBar backgroundColor="#009387" barStyle="light-content" />
       <View style={styles.header}>
         <Text style={styles.text_header}>Don't worry we have the solution</Text>
-        
       </View>
       <Animatable.View animation="fadeInUpBig" style={styles.footer}>
         <Text style={styles.text_footer}>email</Text>
         <View style={styles.action}>
           <FontAwesome name="user-o" color="#05375a" size={20} />
-
           <TextInput
             placeholder="Your email"
             style={styles.textInput}
@@ -135,7 +124,6 @@ const ForgotPassword = ({ navigation }) => {
             </Text>
           </Animatable.View>
         )}
-
         <View style={styles.button}>
           <TouchableOpacity
             style={styles.signIn}
@@ -145,50 +133,11 @@ const ForgotPassword = ({ navigation }) => {
           >
             <LinearGradient
               colors={["#08d4c4", "#01ab9d"]}
-              style={[
-                styles.signIn,
-                {
-                  marginTop: 35,
-                },
-              ]}
+              style={[styles.signIn, { marginTop: 35 }]}
             >
-              <Text
-                style={[
-                  styles.textSign,
-                  {
-                    color: "#fff",
-                  },
-                ]}
-              >
-                {" "}
-                Submit
-              </Text>
+              <Text style={[styles.textSign, { color: "#fff" }]}> Submit</Text>
             </LinearGradient>
           </TouchableOpacity>
-
-          {/* <TouchableOpacity
-            onPress={() => navigation.navigate("PinNumber")}
-            style={[
-              styles.signIn,
-              {
-                borderColor: "#009387",
-                borderWidth: 1,
-                marginTop: 35,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.textSign,
-                {
-                  color: "#009387",
-                },
-              ]}
-            >
-              {" "}
-              Go to Next Page
-            </Text>
-          </TouchableOpacity> */}
         </View>
       </Animatable.View>
     </View>
