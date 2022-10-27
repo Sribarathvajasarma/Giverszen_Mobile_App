@@ -6,22 +6,15 @@ export const initialState = {
 
 export const reducer = (state, { type, payload }) => {
     switch (type) {
-
-        case 'START_LOADING':
-            return {
-                ...state,
-                isLoading: true
-
-            }
-        case "INIT":
+        case "LISTING_INIT":
             return {
                 listings: payload,
                 isLoading: false,
-
             }
-
         case "ADD_LISTING":
-
+            if (payload.type === 'nonfood') {
+                payload.expires_in = '2022-9-28 13:24:44'
+            }
             fetch("https://giverzenbackend.herokuapp.com/api/add_listings", {
                 method: 'POST',
                 headers: {
@@ -38,23 +31,16 @@ export const reducer = (state, { type, payload }) => {
                     avatar: payload.avatar,
                     expires_in: payload.expires_in,
                     type: payload.type,
+                    phone: payload.phone
                 })
-            })
-
-                .then((response) => response.json())
-                .then(async (responseData) => {
-                    console.log(responseData)
-                    if (responseData.code === 1) {
-                        Alert.alert('Listing added succesfully')
-
-                    } else {
-                        Alert.alert('Sorry unable to add listing, Please try again')
-
-                    }
-
-                })
-                .done();
+            }).then((response) => response.json()).then(async (responseData) => {
+                console.log(responseData)
+                if (responseData.code === 1) {
+                    Alert.alert('Listing added succesfully')
+                } else {
+                    Alert.alert('Sorry unable to add listing, Please try again')
+                }
+            }).done();
             return { listings: [...state.listings, payload], isLoading: false }
-
     }
 }

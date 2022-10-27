@@ -2,40 +2,49 @@ import { Platform, StyleSheet, Text, Image, Alert, View, Dimensions, StatusBar, 
 import React, { useState, useEffect } from 'react'
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Entypo from 'react-native-vector-icons/Entypo';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
 
 const MIN_HEIGHT = Platform.OS === 'ios' ? 90 : 55;
 const MAX_HEIGHT = 350;
 
-const ViewListings = ({ route }) => {
-    const itemData = route.params.itemData                                  //Get itemData from previous screen
-    const [user, setUser] = useState(0)                                     //Create states to store values
+const ViewOwnLisitngs = ({ navigation, route }) => {
+    const itemData = route.params.itemData                   //Get itemData from previous screen
+    const [user, setUser] = useState('')                      //Create states to store values
     const [loading, setLoading] = useState(false)
-    const [text, setText] = useState("Request this listing")
-    const [text2, setText2] = useState("Request")
-    const [text3, setText3] = useState('thumbs-up')
+    const [requesters, setRequesters] = useState([])
+    const [text, setText] = useState('')
+
     useEffect(() => {
         setLoading(true)
         const fetch_data = async () => {
             let userId = await AsyncStorage.getItem('userId')
             setUser(parseInt(userId))
-            fetch("https://giverzenbackend.herokuapp.com/api/check_request", {           //Check the current user already request this listing using api
+            fetch("https://giverzenbackend.herokuapp.com/api/get_requests", {             //Get the requests of particular listings from api
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    requester_id: parseInt(userId),
-                    listings_id: itemData.id
+                    id: itemData.id
                 })
             }).then((response) => response.json())
                 .then(async (responseData) => {
-                    if (responseData.code === 1) {                                 //Do actions according to the response values from server
-                        setText('You have already requested this listing')
-                        setText2("Cancel request")
-                        setText3("thumbs-down")
-
+                    if (responseData.results) {
+                        let Arr = []
+                        responseData.results.map((item, index) => {
+                            const [fullDate, time] = item.created_at.split('T');
+                            const [year, month, date] = fullDate.split('-');
+                            const [hour, minute, second] = time.split(':');
+                            const [splited] = second.split('.000Z');
+                            const dateTime = new Date(year, month, date, hour, minute, splited);
+                            const final_created_at = dateTime.toDateString() + ' ' + dateTime.toLocaleTimeString()
+                            let RequesterObj = { requesterId: item.requester_id, requesterName: item.username, listings_id: item.listings_id, avatar: item.avatar, requested_on: final_created_at, longitude: parseFloat(item.longitude), latitude: parseFloat(item.latitude) }
+                            Arr.push(RequesterObj)                                            //Format data and store it in Arr
+                        })
+                        setRequesters(Arr)
+                    } else {
+                        setText('Your listing has not been requested yet')
                     }
                 }).done();
             setLoading(false)
@@ -43,55 +52,6 @@ const ViewListings = ({ route }) => {
         fetch_data()
     }, [])
 
-    const RequestHandler = () => {
-        setLoading(true)
-        if (text2 === "Request") {
-            fetch("https://giverzenbackend.herokuapp.com/api/add_request", {          //Post request details to api
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    requester_id: parseInt(user),
-                    listings_id: itemData.id
-                })
-            }).then((response) => response.json())
-                .then(async (responseData) => {
-                    if (responseData.msg === "Listing requested successfully") {
-                        setText('You have already requested this listing')
-                        setText2("Cancel request")
-                        setText3("thumbs-down")
-                        Alert.alert('Listing requested succesfully')
-                    } else {
-                        Alert.alert(responseData.msg)
-                    }
-                }).done();
-        } else {
-            fetch("https://giverzenbackend.herokuapp.com/api/delete_request", {        //Delete the existing request of this current user for this particular listing from api
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    requester_id: parseInt(user),
-                    listings_id: itemData.id
-                })
-            }).then((response) => response.json())
-                .then(async (responseData) => {
-                    if (responseData.msg === "Request removed") {
-                        setText('You have already requested this listing')
-                        setText2("Request")
-                        setText3("thumbs-up")
-                        Alert.alert('Listing request removed succesfully')               //Show successfull message
-                    } else {
-                        Alert.alert(responseData.msg)                                  //Show error message
-                    }
-                }).done();
-        }
-        setLoading(false)
-    }
     if (loading === true) {
         return (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
@@ -129,7 +89,6 @@ const ViewListings = ({ route }) => {
                                 longitude: itemData.coordinate.longitude,
                                 latitudeDelta: 0.008,
                                 longitudeDelta: 0.008
-
                             }}>
                             <MapView.Marker
                                 coordinate={itemData.coordinate}
@@ -137,30 +96,50 @@ const ViewListings = ({ route }) => {
                             />
                         </MapView>
                     </View>
-                    {(itemData.requester === 0) &&
-                        <View style={styles.section}>
-                            <Text style={styles.title}>Action</Text>
-                            <Text style={styles.sectionContent}>{text}</Text>
-                            <View style={styles.categories}>
-                                <TouchableOpacity onPress={RequestHandler}>
-                                    <View style={styles.categoryContainer}>
-                                        <Entypo name={text3} size={16} style={{ marginTop: 4 }} color="#fff" />
-                                        <Text style={styles.category}>{text2}</Text>
+                    <View style={styles.section}>
+                        <Text style={styles.title}>Requesters</Text>
+                        <Text style={styles.sectionContent}>{text}</Text>
+                        {requesters.map((item, index) => (
+                            <TouchableOpacity key={item.requesterName} onPress={() => navigation.navigate('Requester', { data: item })}>
+                                <View style={styles.mainCardView}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <View style={styles.subCardView}>
+                                            <Image
+                                                source={{ uri: item.avatar }}
+                                                resizeMode="contain"
+                                                style={{ borderRadius: 25, height: 50, width: 50, }} />
+                                        </View>
+                                        <View style={{ marginLeft: 12 }}>
+                                            <Text style={{ fontSize: 14, color: "#050405", fontWeight: 'bold', textTransform: 'capitalize', }}>
+                                                {item.requesterName}
+                                            </Text>
+                                            <View style={{ marginTop: 4, borderWidth: 0, width: '85%', }}>
+                                                <Text style={{ color: "#9B969B", fontSize: 12, }}>Requested on:{item.requested_on}</Text>
+                                            </View>
+                                        </View>
                                     </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>}
-                    {(itemData.requester !== 0) &&
-                        <View style={styles.section}>
-                            <Text style={[styles.title, { color: '#009387' }]}>This Listing has already been requested by someone and Accepted by owner</Text>
-                        </View>}
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    <View style={styles.section}>
+                        <Text style={styles.title}>Action</Text>
+                        <View style={styles.categories}>
+                            <TouchableOpacity onPress={() => { }}>
+                                <View style={styles.categoryContainer}>
+                                    <EvilIcons name='trash' size={25} style={{ marginTop: 1 }} color="#fff" />
+                                    <Text style={styles.category}>Delete</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </ScrollView>
             </View>
         )
     }
 }
 
-export default ViewListings
+export default ViewOwnLisitngs
 
 const styles = StyleSheet.create({
     container: {
@@ -200,7 +179,7 @@ const styles = StyleSheet.create({
     },
     categoryContainer: {
         flexDirection: 'row',
-        backgroundColor: '#009387',
+        backgroundColor: '#FF0000',
         borderRadius: 20,
         margin: 10,
         padding: 10,
