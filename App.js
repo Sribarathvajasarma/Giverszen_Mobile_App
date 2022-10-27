@@ -1,28 +1,37 @@
 import 'react-native-gesture-handler';
-
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, LogBox } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './src/navigations/AuthStack';
 import AppStack from './src/navigations/AppStack';
 import { ActivityIndicator } from 'react-native';
 import { ListingsProvider } from './src/contexts/ListingsContext'
-
 import { AuthContext } from './src/components/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MessagesProvider } from './src/contexts/MessageContext';
+import { SocketProvider } from './src/contexts/SocketContext';
+import SocketClient from './SocketClient';
+import { DriverProvider } from './src/contexts/DriverContext';
+import { LanguageProvider } from './src/contexts/LanguageContext';
 
 navigator.__defineGetter__("userAgent", function () {   // you have to import rect native first !!
   return "react-native";
 });
 
-import SocketIOClient from "socket.io-client/dist/socket.io.js";
-import { MessagesProvider } from './src/contexts/MessageContext';
-import { SocketProvider } from './src/contexts/SocketContext';
-import SocketClient from './SocketClient';
-
-
 const App = () => {
+  useEffect(() => {
+    const getLang = async () => {
+      let language = await AsyncStorage.getItem('Language')             //Get current language from async storage
+      if (language === null) {
+        await AsyncStorage.setItem('Language', 'E')
+        global.lang = 'E'                                            //Store it in global variable
+      } else {
+        global.lang = language;
+      }
+    }
+    getLang()
+  }, [])
 
   const initialLoginState = {
     isLoading: true,
@@ -37,8 +46,6 @@ const App = () => {
           ...prevState,
           isLoading: true
         }
-
-
       case 'RETRIVE_TOKEN':
         return {
           ...prevState,
@@ -66,178 +73,111 @@ const App = () => {
           userToken: action.token,
           isLoading: false
         }
-
-
     }
   }
 
-  const [loginState, dispatch] = React.useReducer(loginReducer, initialLoginState)
+  const [loginState, dispatch] = React.useReducer(loginReducer, initialLoginState)    //Use login reducer
 
   const authContext = React.useMemo(() => ({
-    signIn: async (email, password) => {
+    signIn: async (responseData) => {
       let userToken
       let auth = null
       userToken = null;
-      // setUserToken('rggsfsd');
-      // setIsLoading(false)
       dispatch({ type: 'START_LOADING' })
 
-      fetch("https://giverzenbackend.herokuapp.com/api/login", {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        })
-      })
-
-        .then((response) => response.json())
-        .then(async (responseData) => {
-          if (responseData.access_token) {
-            try {
-              userToken = responseData.access_token
-              let userAvatar = responseData.user.avatar
-              let userEmail = responseData.user.email
-              let userId = responseData.user.id.toString()
-              let userLatitude = responseData.user.latitude
-              let userLongitude = responseData.user.longitude
-              let userName = responseData.user.username
-
-              await AsyncStorage.setItem('userToken', userToken)
-              await AsyncStorage.setItem('userAvatar', userAvatar)
-              await AsyncStorage.setItem('userEmail', userEmail)
-              await AsyncStorage.setItem('userId', userId)
-              await AsyncStorage.setItem('userLatitude', userLatitude)
-              await AsyncStorage.setItem('userLongitude', userLongitude)
-              await AsyncStorage.setItem('userName', userName)
-
-              dispatch({ type: 'LOGIN', id: email, token: userToken })
-
-
-            } catch (e) {
-              console.log(e)
-            }
-          } else {
-            console.log("Login Failed")
-          }
-
-        })
-        .done();
-
-      // if (email === 'user' && password === 'pass') {
-      //   try {
-      //     userToken = 'dfdfsdf'
-      //     await AsyncStorage.setItem('userToken', userToken)
-
-      //   } catch (e) {
-      //     console.log(e)
-      //   }
-
-      // }
-
-    },
-    signOut: async () => {
-      // setUserToken(null);
-      // setIsLoading(false)
       try {
-        await AsyncStorage.removeItem('userToken')
+        userToken = responseData.access_token
+        let userAvatar = responseData.user.avatar
+        let userEmail = responseData.user.email
+        let userId = responseData.user.id.toString()
+        let userLatitude = responseData.user.latitude
+        let userLongitude = responseData.user.longitude
+        let userName = responseData.user.username
+        let userRole = responseData.user.role
+        let userMobile = responseData.user.phone
+
+        await AsyncStorage.setItem('userToken', userToken)                 //Store logged in user's data in Async storage
+        await AsyncStorage.setItem('userAvatar', userAvatar)
+        await AsyncStorage.setItem('userEmail', userEmail)
+        await AsyncStorage.setItem('userId', userId)
+        await AsyncStorage.setItem('userLatitude', userLatitude)
+        await AsyncStorage.setItem('userLongitude', userLongitude)
+        await AsyncStorage.setItem('userName', userName)
+        await AsyncStorage.setItem('userRole', userRole)
+        await AsyncStorage.setItem('userMobile', userMobile)
+
+
+        dispatch({ type: 'LOGIN', id: userEmail, token: userToken })           //Call LOGIN action
+      } catch (e) {
+        console.log(e)
+      }
+    },
+
+    signOut: async () => {
+      try {
+        await AsyncStorage.removeItem('userToken')              //Remove logged in user's data from async storage when logout
         await AsyncStorage.removeItem('userAvatar')
         await AsyncStorage.removeItem('userEmail')
         await AsyncStorage.removeItem('userId')
         await AsyncStorage.removeItem('userLatitude')
         await AsyncStorage.removeItem('userLongitude')
         await AsyncStorage.removeItem('userName')
+        await AsyncStorage.removeItem('userRole')
+        await AsyncStorage.removeItem('userMobile')
 
       } catch (e) {
         console.log(e)
       }
       dispatch({ type: 'LOGOUT' })
-
-
-
     },
-    signUp: async (username, email, password) => {
+
+    signUp: async (responseData) => {
       try {
         let userToken
         userToken = null;
         dispatch({ type: 'START_LOADING' })
-        fetch("https://giverzenbackend.herokuapp.com/api/register", {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: email,
-            password: password,
-            username: username,
-            longitude: '0.00000',
-            latitude: '0.00000',
-          })
-        })
+        try {
+          userToken = responseData.access_token
+          let userAvatar = responseData.user.avatar
+          let userEmail = responseData.user.email
+          let userId = responseData.user.id.toString()
+          let userLatitude = responseData.user.latitude
+          let userLongitude = responseData.user.longitude
+          let userName = responseData.user.username
 
-          .then((response) => response.json())
-          .then(async (responseData) => {
-            if (responseData.access_token) {
-              try {
-                userToken = responseData.access_token
-                let userAvatar = responseData.user.avatar
-                let userEmail = responseData.user.email
-                let userId = responseData.user.id.toString()
-                let userLatitude = responseData.user.latitude
-                let userLongitude = responseData.user.longitude
-                let userName = responseData.user.username
-
-                await AsyncStorage.setItem('userToken', userToken)
-                await AsyncStorage.setItem('userAvatar', userAvatar)
-                await AsyncStorage.setItem('userEmail', userEmail)
-                await AsyncStorage.setItem('userId', userId)
-                await AsyncStorage.setItem('userLatitude', userLatitude)
-                await AsyncStorage.setItem('userLongitude', userLongitude)
-                await AsyncStorage.setItem('userName', userName)
-
-                dispatch({ type: 'REGISTER', id: email, token: userToken })
+          await AsyncStorage.setItem('userToken', userToken)                    //Store signed up user's data in Async storage
+          await AsyncStorage.setItem('userAvatar', userAvatar)
+          await AsyncStorage.setItem('userEmail', userEmail)
+          await AsyncStorage.setItem('userId', userId)
+          await AsyncStorage.setItem('userLatitude', userLatitude)
+          await AsyncStorage.setItem('userLongitude', userLongitude)
+          await AsyncStorage.setItem('userName', userName)
+          await AsyncStorage.setItem('userRole', "user")
+          await AsyncStorage.setItem('userMobile', "0769838892")
 
 
-              } catch (e) {
-                console.log(e)
-              }
-            } else {
-              console.log("Login Failed")
-            }
-
-          })
-          .done();
-
-        // userToken = 'dfdfsdf'
-        // await AsyncStorage.setItem('userToken', userToken)
-
+          dispatch({ type: 'REGISTER', id: userEmail, token: userToken })             //Call REGISTER action
+        } catch (e) {
+          console.log(e)
+        }
       } catch (e) {
         console.log(e)
       }
-      // setUserToken('rggsfsd');
-      // setIsLoading(false)
     }
   }), [])
+
   useEffect(() => {
     setTimeout(async () => {
       let userToken;
       userToken = null
       try {
-        userToken = await AsyncStorage.getItem('userToken')
-
+        userToken = await AsyncStorage.getItem('userToken')             //Get token from async storage
       } catch (e) {
         console.log(e)
       }
       dispatch({ type: 'RETRIVE_TOKEN', token: userToken })
-
-      // setIsLoading(false)
     }, 1000)
   }, [])
-
 
   if (loginState.isLoading) {
     return (
@@ -246,18 +186,31 @@ const App = () => {
       </View>
     )
   }
+
   return (
     <AuthContext.Provider value={authContext}>
-      <ListingsProvider>
-        <MessagesProvider>
-          <NavigationContainer>
-            {loginState.userToken !== null ? <SocketProvider><SocketClient /><AppStack /></SocketProvider> : <AuthStack />}
-          </NavigationContainer>
-        </MessagesProvider>
-      </ListingsProvider>
+      <LanguageProvider>
+        <ListingsProvider>
+          <DriverProvider>
+            <MessagesProvider>
+              <NavigationContainer>
+                {loginState.userToken !== null ? <SocketProvider><SocketClient /><AppStack /></SocketProvider> : <AuthStack />}
+              </NavigationContainer>
+            </MessagesProvider>
+          </DriverProvider>
+        </ListingsProvider>
+      </LanguageProvider>
     </AuthContext.Provider>
   )
 }
 
-
 export default App
+
+
+
+
+
+
+
+
+
