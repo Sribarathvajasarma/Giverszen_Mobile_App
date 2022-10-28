@@ -1,10 +1,8 @@
-import { StyleSheet, Text, View, Alert } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React, { useState, useEffect, useCallback, useContext } from 'react'
 import { Bubble, GiftedChat, Send } from 'react-native-gifted-chat'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5'
-import { MessagesProvider } from '../contexts/MessageContext'
-import socketIo from 'socket.io-client/dist/socket.io'
 import { SocketContext } from '../contexts/SocketContext'
 
 const Chat = ({ route }) => {
@@ -13,9 +11,7 @@ const Chat = ({ route }) => {
 
     useEffect(() => {
         const fetch_data = async () => {
-
-
-            fetch("https://giverzenbackend.herokuapp.com/api/message", {
+            fetch("https://giverzenbackend.herokuapp.com/api/message", {                    //Get all messages of particular conversation
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -24,14 +20,13 @@ const Chat = ({ route }) => {
                 body: JSON.stringify({
                     sending: route.params.authId,
                     recipient: route.params.otherId
-
                 })
             }).then((response) => response.json())
                 .then((responseData) => {
                     let messArr = []
                     let messObj = {}
                     let count = 1
-                    responseData.messages.forEach(item => {
+                    responseData.messages.forEach(item => {                   //Check each message sender and give user according to that and store it in array
                         if (item.sender === route.params.authId) {
                             messObj = {
                                 _id: count,
@@ -55,37 +50,22 @@ const Chat = ({ route }) => {
                                 },
                             }
                         }
-
-                        messArr.push(messObj)
+                        messArr.push(messObj)                        //Push object into array 
                         count = count + 1
                     })
-
-                    setMessages(messArr.reverse())
-
-                    //dispatch({ type: 'COVERSATIONS_INIT', payload: newArr })
-
-                })
-                .done();
-
-
-
+                    setMessages(messArr.reverse())                      //Set array to messages state
+                }).done();
         }
         fetch_data()
-
-
     }, [])
 
     useEffect(() => {
-        state.payload.on('addMessageToClient', msg => {
+        state.payload.on('addMessageToClient', msg => {                         //Add new message to socket
             if (msg.recipient === parseInt(route.params.authId)) {
-
                 var rand = "";
                 var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
                 for (var i = 0; i < 10; i++)
-                    rand += possible.charAt(Math.floor(Math.random() * possible.length));
-
-
+                    rand += possible.charAt(Math.floor(Math.random() * possible.length));              //Create unique message id
                 let new_msg = {
                     _id: rand,
                     text: msg.text,
@@ -101,47 +81,11 @@ const Chat = ({ route }) => {
         })
     }, [state.payload])
 
-    // useEffect(() => {
-    //     setMessages([
-    //         {
-    //             _id: 1,
-    //             text: 'Hello developer',
-    //             createdAt: new Date(),
-    //             user: {
-    //                 _id: 1,
-    //                 name: 'React Native',
-    //                 avatar: 'https://placeimg.com/140/140/any',
-    //             },
-    //         },
-    //         {
-    //             _id: 2,
-    //             text: 'Hello world',
-    //             createdAt: new Date(),
-    //             user: {
-    //                 _id: 1,
-    //                 name: 'React Native',
-    //                 avatar: 'https://placeimg.com/140/140/any',
-    //             },
-    //         },
-    //         {
-    //             _id: 3,
-    //             text: 'Hello world',
-    //             createdAt: new Date(),
-    //             user: {
-    //                 _id: 1,
-    //                 name: 'React Native',
-    //                 avatar: 'https://placeimg.com/140/140/any',
-    //             },
-    //         },
-    //     ])
-    // }, [])
-
     const onSend = useCallback((messages = []) => {
         setMessages(previousMessages => GiftedChat.append(previousMessages, messages))
-
         let msg = { sender: parseInt(route.params.authId), recipient: parseInt(route.params.otherId), text: messages[0].text, media: '' }
-        state.payload.emit('addMessage', msg)
-        fetch("https://giverzenbackend.herokuapp.com/api/add_message", {
+        state.payload.emit('addMessage', msg)                                                         //Send new message to server using socket
+        fetch("https://giverzenbackend.herokuapp.com/api/add_message", {             //Post new message to server to insert it in the database
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -152,23 +96,15 @@ const Chat = ({ route }) => {
                 recipient: parseInt(route.params.otherId),
                 text: messages[0].text,
                 media: ''
-
             })
         }).then((response) => response.json())
             .then((responseData) => {
-                console.log('message added successfully')
-                //dispatch({ type: 'COVERSATIONS_INIT', payload: newArr })
-
+                console.log('message added successfully')                            //Show successfull message
             })
             .done();
-
-
-
     }, [])
 
-
     const onLongPress = (context, message) => {
-        console.log(context, message);
         const options = ['Delete Message', 'Cancel'];
         const cancelButtonIndex = options.length - 1;
         context.actionSheet().showActionSheetWithOptions({
@@ -177,13 +113,14 @@ const Chat = ({ route }) => {
         }, (buttonIndex) => {
             switch (buttonIndex) {
                 case 0:
-                    setMessages(messages.filter((mess) => mess._id !== message._id))
+                    setMessages(messages.filter((mess) => mess._id !== message._id))            //Delete message from message array
                     break;
                 case 1:
                     break;
             }
         });
     }
+
     const renderSend = (props) => {
         return (
             <Send {...props}>
