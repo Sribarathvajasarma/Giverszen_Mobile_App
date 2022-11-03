@@ -24,7 +24,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Delivery from '../screens/Delivery';
 import AddUser from '../screens/AddUser';
 import DriverRoute from '../screens/DriverRoute';
-import DelivaryDetail from '../screens/DelivaryDetail';
+import DelivaryDetail from '../screens/DelivaryDetails';
 
 const Stack = createNativeStackNavigator();
 export const ProfileStack = ({ navigation }) => {                                    //Create stack navigation for profile
